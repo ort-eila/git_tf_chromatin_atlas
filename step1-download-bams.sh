@@ -53,8 +53,8 @@ mkdir -p "${bam_dir}"
 echo "BAM directory created or verified: ${bam_dir}"
 
 # Export credentials as environment variables
-!echo $ACCESS_KEY
-!echo $SECRET_KEY
+echo "Extracted ACCESS_KEY: ${ACCESS_KEY}"
+echo "Extracted SECRET_KEY: ${SECRET_KEY}"
 
 echo "Credentials exported (ensure these are not sensitive before sharing logs)."
 
