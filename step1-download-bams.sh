@@ -53,8 +53,9 @@ mkdir -p "${bam_dir}"
 echo "BAM directory created or verified: ${bam_dir}"
 
 # Export credentials as environment variables
-# access_key=7AK4DZQ6
-# secret_key=ur357myfxbc26gf5
+!echo $ACCESS_KEY
+!echo $SECRET_KEY
+
 echo "Credentials exported (ensure these are not sensitive before sharing logs)."
 
 # Check if the BAM file already exists
