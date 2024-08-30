@@ -20,8 +20,8 @@ module load biology samtools
 INPUT_FILE="$1"
 
 # Print the first few lines of the input file for debugging
-echo "Printing the first 10 lines of the input file ($INPUT_FILE):"
-head -n 10 "$INPUT_FILE"
+echo "Printing the first 3 lines of the input file ($INPUT_FILE):"
+head -n 3 "$INPUT_FILE"
 
 # Extract the specific BAM file path based on SLURM_ARRAY_TASK_ID
 BAM_FILE=$(sed -n "${SLURM_ARRAY_TASK_ID}p" "$INPUT_FILE")

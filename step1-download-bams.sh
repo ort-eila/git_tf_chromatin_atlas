@@ -31,8 +31,8 @@ if [ ! -f "$INPUT_FILE" ]; then
 fi
 
 # Print the content of the input file
-echo "Input file '$INPUT_FILE' exists. Printing its head:"
-head -n 10 "$INPUT_FILE"
+echo "Input file '$INPUT_FILE' exists. Printing the first 3 lines:"
+head -n 3 "$INPUT_FILE"
 
 # Extract the specific line based on SLURM_ARRAY_TASK_ID using awk
 LINE=$(awk "NR==${SLURM_ARRAY_TASK_ID}" "$INPUT_FILE")
