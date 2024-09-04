@@ -7,8 +7,8 @@
 #SBATCH --partition=akundaje,owners
 #SBATCH --mail-type=all
 #SBATCH --mail-user=eila@stanford.edu
-#SBATCH --output=./local_logs/slurm_step3_peaks_out.combined.out
-#SBATCH --error=./local_logs/slurm_step3_peaks_err.combined.err
+#SBATCH --output=local_logs/slurm_step3_peaks_out.combined.out
+#SBATCH --error=local_logs/slurm_step3_peaks_err.combined.err
 
 # Set script to exit on errors, undefined variables, or command failures in pipelines
 set -euo pipefail
@@ -16,7 +16,7 @@ set -euo pipefail
 # Define the input file path (using the argument passed)
 INPUT_FILE="$1"
 
-# Define the output directory and create it if it doesn't exist
+# Define the output directory and create it if it doesn't exist. this is output file as well
 out_dir="${SCRATCH}/encode_pseudobulks"
 mkdir -p "${out_dir}"
 

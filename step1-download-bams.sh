@@ -7,8 +7,8 @@
 #SBATCH --partition=akundaje,owners
 #SBATCH --mail-type=all
 #SBATCH --mail-user=eila@stanford.edu
-#SBATCH --output=./local_logs/slurm_step1_download_bams_out.combined.out
-#SBATCH --error=./local_logs/slurm_step1_download_bams_err.combined.err
+#SBATCH --output=local_logs/slurm_step1_download_bams_out.combined.out
+#SBATCH --error=local_logs/slurm_step1_download_bams_err.combined.err
 
 # Define the input file path (using the argument passed)
 INPUT_FILE="$1"

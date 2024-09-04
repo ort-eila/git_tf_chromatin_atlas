@@ -7,8 +7,8 @@
 #SBATCH --partition=akundaje,owners
 #SBATCH --mail-type=all
 #SBATCH --mail-user=eila@stanford.edu
-#SBATCH --output=./local_logs/slurm_step2_samtools_out.combined.out
-#SBATCH --error=./local_logs/slurm_step2_samtools_err.combined.err
+#SBATCH --output=local_logs/slurm_step2_samtools_out.combined.out
+#SBATCH --error=local_logs/slurm_step2_samtools_err.combined.err
 
 # Set script to exit on errors, undefined variables, or command failures in pipelines
 set -euo pipefail
