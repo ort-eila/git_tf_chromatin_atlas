@@ -41,7 +41,7 @@ fi
 
 # Print the content of the input file
 echo "Bam file '$BAM_FILE' exists. Printing its head:"
-head -n 10 "$BAM_FILE"
+head -n 5 "$BAM_FILE"
 
 # Extract ENCSR_ID from the BAM file path (assuming filename format includes ENCSR_ID)
 ENCSR_ID=$(basename "$BAM_FILE" | cut -d'_' -f1)

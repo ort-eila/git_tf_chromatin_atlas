@@ -17,7 +17,7 @@ set -euo pipefail
 INPUT_FILE="$1"
 
 # Define the output directory and create it if it doesn't exist. this is output file as well
-out_dir="${SCRATCH}/encode_pseudobulks"
+out_dir="${SCRATCH}/encode_pseudobulks_data"
 mkdir -p "${out_dir}"
 
 # Load necessary modules
@@ -47,12 +47,19 @@ FILE_NAME=$(echo "$LINE" | awk '{print $3}')
 DOWNLOAD_URL=$(echo "$LINE" | awk '{print $4}')
 
 # Define output directories and file paths
-OUT_DIR="${SCRATCH}/encode_pseudobulks/${ENCSR_ID}/peaks"
+OUT_DIR="${SCRATCH}/encode_pseudobulks_data/peaks/${ENCSR_ID}"
 FILE_DIR="${OUT_DIR}/${FILE_ID}"
 mkdir -p "${FILE_DIR}"
 
 # Define the output file path
 OUTPUT_FILE="${FILE_DIR}/${ENCSR_ID}_${FILE_ID}.bed.gz"
+
+# Export credentials as environment variables
+echo "Extracted ACCESS_KEY: ${ACCESS_KEY}"
+echo "Extracted SECRET_KEY: ${SECRET_KEY}"
+
+echo "Credentials exported (ensure these are not sensitive before sharing logs)."
+
 
 # Check if the file already exists
 if [ -f "${OUTPUT_FILE}" ]; then
@@ -60,7 +67,7 @@ if [ -f "${OUTPUT_FILE}" ]; then
 else
   # Download the file
   echo "Downloading ${FILE_NAME} from ${DOWNLOAD_URL} to ${OUTPUT_FILE}..."
-  curl -sRL ${DOWNLOAD_URL} -o ${OUTPUT_FILE}
+  curl -sRL -u ${ACCESS_KEY}:${SECRET_KEY} ${DOWNLOAD_URL} -o ${OUTPUT_FILE}
   echo "Download complete: ${OUTPUT_FILE}"
 
   # Verify the downloaded file

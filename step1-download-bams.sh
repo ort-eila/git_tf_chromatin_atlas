@@ -14,9 +14,8 @@
 INPUT_FILE="$1"
 
 # Define the output directory and create it if it doesn't exist
-out_dir="${SCRATCH}/encode_pseudobulks"
-mkdir -p "${out_dir}"
-
+out_dir="${SCRATCH}/encode_pseudobulks_data"
+mkdir -p "${out_dir}"  # This command creates the output directory if it doesn't exist
 
 # Set script to exit on errors, undefined variables, or command failures in pipelines
 set -euo pipefail
@@ -49,7 +48,7 @@ echo "Download URL: ${download_url}"
 
 # Define the output directory for BAM files and create it if it doesn't exist
 bam_dir="${out_dir}/${ENCSR_ID}/bam"
-mkdir -p "${bam_dir}"
+mkdir -p "${bam_dir}"  # This command creates the BAM directory if it doesn't exist
 echo "BAM directory created or verified: ${bam_dir}"
 
 # Export credentials as environment variables
