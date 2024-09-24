@@ -15,7 +15,7 @@ INPUT_FILE="$1"
 
 # Define the output directory and create it if it doesn't exist
 out_dir="${SCRATCH}/encode_pseudobulks_data"
-mkdir -p "${out_dir}"  # This command creates the output directory if it doesn't exist
+mkdir -p "${out_dir}"
 
 # Set script to exit on errors, undefined variables, or command failures in pipelines
 set -euo pipefail
@@ -47,29 +47,29 @@ echo "Extracted ENCSR_ID: ${ENCSR_ID}"
 echo "Download URL: ${download_url}"
 
 # Define the output directory for BAM files and create it if it doesn't exist
-bam_dir="${out_dir}/${ENCSR_ID}/bam"
-mkdir -p "${bam_dir}"  # This command creates the BAM directory if it doesn't exist
+bam_dir="${out_dir}/bam/${ENCSR_ID}"
+mkdir -p "${bam_dir}"
 echo "BAM directory created or verified: ${bam_dir}"
 
 # Export credentials as environment variables
 echo "Extracted ACCESS_KEY: ${ACCESS_KEY}"
 echo "Extracted SECRET_KEY: ${SECRET_KEY}"
-
 echo "Credentials exported (ensure these are not sensitive before sharing logs)."
 
 # Check if the BAM file already exists
-if [ -f "${bam_dir}/${ENCSR_ID}_unsorted.bam" ]; then
-  echo "BAM file already exists: ${bam_dir}/${ENCSR_ID}_unsorted.bam"
+bam_file="${bam_dir}/${ENCSR_ID}_unsorted.bam"
+if [ -f "$bam_file" ]; then
+  echo "BAM file already exists: $bam_file. Download is not required."
 else
   # Download the BAM file
   echo "Downloading BAM file from ${download_url}..."
-  curl -sRL -u ${ACCESS_KEY}:${SECRET_KEY} ${download_url} -o "${bam_dir}/${ENCSR_ID}_unsorted.bam"
-  echo "BAM file downloaded to ${bam_dir}/${ENCSR_ID}_unsorted.bam"
+  curl -sRL -u ${ACCESS_KEY}:${SECRET_KEY} ${download_url} -o "$bam_file"
+  echo "BAM file downloaded to $bam_file"
 fi
 
 # Verify the BAM file
 echo "Verifying BAM file..."
-if [ -f "${bam_dir}/${ENCSR_ID}_unsorted.bam" ]; then
+if [ -f "$bam_file" ]; then
   echo "BAM file is valid."
 else
   echo "Error: BAM file is missing."

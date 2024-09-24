@@ -17,7 +17,7 @@ set -euo pipefail
 INPUT_FILE="$1"
 
 # Define the output directory and create it if it doesn't exist. this is output file as well
-out_dir="${SCRATCH}/encode_pseudobulks_data"
+out_dir="${GROUP_SCRATCH}/${USER}/encode_pseudobulks/encode_pseudobulks_data"
 mkdir -p "${out_dir}"
 
 # Load necessary modules
@@ -47,7 +47,7 @@ FILE_NAME=$(echo "$LINE" | awk '{print $3}')
 DOWNLOAD_URL=$(echo "$LINE" | awk '{print $4}')
 
 # Define output directories and file paths
-OUT_DIR="${SCRATCH}/encode_pseudobulks_data/peaks/${ENCSR_ID}"
+OUT_DIR="${GROUP_SCRATCH}/${USER}/encode_pseudobulks/encode_pseudobulks_data/peaks/${ENCSR_ID}"
 FILE_DIR="${OUT_DIR}/${FILE_ID}"
 mkdir -p "${FILE_DIR}"
 

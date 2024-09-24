@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # Define base path
-negative_base_path="$SCRATCH/encode_pseudobulks_negative"
+# negative_base_path="$SCRATCH/encode_pseudobulks_negative"
+negative_base_path="${GROUP_SCRATCH}/${USER}/encode_pseudobulks/encode_pseudobulks_negative/"
 
 # Define the output file
 output_file="./steps_inputs/step5/extracted_paths.txt"
@@ -21,8 +22,8 @@ for negative_path in $(ls -d ${negative_base_path}/*/*/*/fold_*); do
     fold_id=$(echo "${negative_path}" | awk -F'/' '{print $(NF)}')    # Extract the full fold_id
 
     # Construct the paths
-    peaks_path="${SCRATCH}/encode_pseudobulks_data/peaks/${ID1}/${ID2}/${ID1}_${ID2}.bed.gz"
-    bam_path="${SCRATCH}/encode_pseudobulks_data/bam/${ID1}/${ID1}_sorted.bam"
+    peaks_path="${GROUP_SCRATCH}/${USER}/encode_pseudobulks/encode_pseudobulks_data/peaks/${ID1}/${ID2}/${ID1}_${ID2}.bed.gz"
+    bam_path="${GROUP_SCRATCH}/${USER}/encode_pseudobulks/encode_pseudobulks_data/bams/${ID1}/${ID1}_sorted.bam"
     negative_file="${negative_path}/${ID1}_${ID2}_${species}_negatives.bed"
 
     # Check if the paths exist and print errors if they don't

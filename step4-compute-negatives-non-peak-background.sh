@@ -45,9 +45,12 @@ else
     exit 1
 fi
 
-# Define directories and paths
-OUT_DIR=${SCRATCH}/encode_pseudobulks_negative/human/${species}/${id_1}/${id_2}
-PEAKS=${SCRATCH}/encode_pseudobulks_data/peaks/${id_1}/${id_2}/${id_1}_${id_2}.bed.gz
+# Define directories and paths - TODO: change the human to be a 
+OUT_DIR="${GROUP_SCRATCH}/${USER}/encode_pseudobulks/encode_pseudobulks_negative/${species}/${id_1}/${id_2}"
+PEAKS=${GROUP_SCRATCH}/${USER}/encode_pseudobulks/encode_pseudobulks_data/peaks/${id_1}/${id_2}/${id_1}_${id_2}.bed.gz
+
+# OUT_DIR=${SCRATCH}/encode_pseudobulks_negative/human/${species}/${id_1}/${id_2}
+# PEAKS=${SCRATCH}/encode_pseudobulks_data/peaks/${id_1}/${id_2}/${id_1}_${id_2}.bed.gz
 
 # Print the PEAKS path
 echo "PEAKS path is set to: ${PEAKS}"
