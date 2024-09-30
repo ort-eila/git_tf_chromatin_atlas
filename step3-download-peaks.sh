@@ -12,7 +12,7 @@
 
 # Set script to exit on errors, undefined variables, or command failures in pipelines
 set -euo pipefail
-
+set -x 
 # Define the input file path (using the argument passed)
 INPUT_FILE="$1"
 

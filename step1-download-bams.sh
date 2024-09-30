@@ -10,6 +10,9 @@
 #SBATCH --output=local_logs/slurm_step1_download_bams_out.combined.out
 #SBATCH --error=local_logs/slurm_step1_download_bams_err.combined.err
 
+set -euo pipefail
+set -x 
+
 # Define the input file path (using the argument passed)
 INPUT_FILE="$1"
 

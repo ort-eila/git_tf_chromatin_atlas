@@ -12,7 +12,7 @@
 
 # Set script to exit on errors, undefined variables, or command failures in pipelines
 set -euo pipefail
-
+set -x 
 # Load necessary modules
 module load biology samtools
 
