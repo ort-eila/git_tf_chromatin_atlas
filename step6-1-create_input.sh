@@ -1,22 +1,23 @@
 #!/bin/bash
 
 # Define base path
-# negative_base_path="$SCRATCH/encode_pseudobulks_negative"
-# /scratch/groups/akundaje/eila/encode_pseudobulks/encode_pseudobulks_negative/human/ENCSR530FGV/ENCFF452JRO/fold_2/
 negative_base_path="${GROUP_SCRATCH}/${USER}/encode_pseudobulks/encode_pseudobulks_negative"
 
-# Define the output file
+# Define the output files
 output_file="./steps_inputs/step6/chrombpnet_pipeline_extracted_paths.txt"
+fold0_output_file="./steps_inputs/step6/chrombpnet_pipeline_extracted_paths_fold_0.txt"
 
-# Create the output directory if it doesn't exist
+# Create the output directories if they don't exist
 mkdir -p "$(dirname "$output_file")"
 
-# Clear the output file if it exists to remove any existing information
+# Clear the output files if they exist to remove any existing information
 > "$output_file"
+> "$fold0_output_file"
 
 # Loop through the directories to extract the relevant information
 for negative_path in $(ls -d ${negative_base_path}/*/*/*/fold_*); do
     echo "Processing negative path: ${negative_path}"  # Echo the current negative path
+    
     # Extract the species, ID1, ID2, and fold_id from the path
     species=$(echo "${negative_path}" | awk -F'/' '{print $(NF-3)}')  # Correct index for species
     ID1=$(echo "${negative_path}" | awk -F'/' '{print $(NF-2)}')      # Correct index for ID1
@@ -25,7 +26,6 @@ for negative_path in $(ls -d ${negative_base_path}/*/*/*/fold_*); do
 
     # Construct the paths
     filtered_peaks_path="${GROUP_SCRATCH}/${USER}/encode_pseudobulks/encode_pseudobulks_data/peaks_blacklist_filter/${ID1}/${ID2}/${ID1}_${ID2}_peaks_no_blacklist.bed.gz"
-    
     bam_path="${GROUP_SCRATCH}/${USER}/encode_pseudobulks/encode_pseudobulks_data/bams/${ID1}/${ID1}_sorted.bam"
     negative_file="${negative_path}/${ID1}_${ID2}_${species}_nonpeaks_negatives.bed"
 
@@ -45,9 +45,14 @@ for negative_path in $(ls -d ${negative_base_path}/*/*/*/fold_*); do
         continue
     fi
 
-    # Write the extracted information to the file with space delimiters
+    # Write the extracted information to the main output file with space delimiters
     echo "${species} ${ID1} ${ID2} ${fold_id} ${filtered_peaks_path} ${bam_path} ${negative_file}" >> "$output_file"
 
+    # If the fold_id is fold_0, also write to the fold_0 output file
+    if [[ "${fold_id}" == "fold_0" ]]; then
+        echo "${species} ${ID1} ${ID2} ${fold_id} ${filtered_peaks_path} ${bam_path} ${negative_file}" >> "$fold0_output_file"
+    fi
 done
 
-echo "File has been generated at: ${output_file}"
+echo "Main output file has been generated at: ${output_file}"
+echo "Fold 0 output file has been generated at: ${fold0_output_file}"

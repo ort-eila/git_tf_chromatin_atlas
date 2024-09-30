@@ -46,7 +46,25 @@ BAM_PATH=$(echo "$LINE" | awk '{print $6}')
 NEGATIVE_FILE=$(echo "$LINE" | awk '{print $7}')
 
 # Define the output directory with date and time included
-OUT_DIR="${GROUP_SCRATCH}/${USER}/encode_pseudobulks/encode_pseudobulks_model_training/${SPECIES}/${ID1}/${ID2}/${FOLD_ID}_${JOB_NAME}_${TIMESTAMP}"
+OUT_DIR="${GROUP_SCRATCH}/${USER}/encode_pseudobulks/encode_pseudobulks_model_training/${SPECIES}/${ID1}/${ID2}/${FOLD_ID}/${ID1}_${FOLD_ID}_${JOB_NAME}_${TIMESTAMP}"
+
+# Check if the OUT_DIR already exists and contains the required folders
+REQUIRED_FOLDERS=("auxiliary" "evaluation" "logs" "models")
+
+if [ -d "$OUT_DIR" ]; then
+    all_exist=true
+    for folder in "${REQUIRED_FOLDERS[@]}"; do
+        if [ ! -d "$OUT_DIR/$folder" ]; then
+            all_exist=false
+            break
+        fi
+    done
+    
+    if $all_exist; then
+        echo "Output directory and required folders already exist: $OUT_DIR. Exiting."
+        exit 0
+    fi
+fi
 
 # Set reference paths based on detected species
 if [ "$SPECIES" == "human" ]; then
@@ -76,7 +94,7 @@ for file in "${required_files[@]}"; do
     fi
 done
 
-# Create the output directory if it doesn't exist
+# Create the output directory
 mkdir -p "$OUT_DIR"
 
 # Print the output directory
