@@ -71,14 +71,18 @@ fi
 BLACKLIST_FILE=""
 # Select the appropriate blacklist file based on species
 if [[ "$species" == "human" ]]; then
-    BLACKLIST_FILE="/oak/stanford/groups/akundaje/eila/git_tf_chromatin_atlas/chrombpnet_tutorial/data/downloads/blacklist.bed.gz"
+    BLACKLIST_FILE="./steps_inputs/reference_human/ENCFF356LFX.bed.gz"
+    # "/oak/stanford/groups/akundaje/eila/git_tf_chromatin_atlas/chrombpnet_tutorial/data/downloads/blacklist.bed.gz"
     echo "DEBUG: human BLACKLIST_FILE is: '$BLACKLIST_FILE'"
-    CHROM_SIZES_FILE="/oak/stanford/groups/akundaje/eila/git_tf_chromatin_atlas/steps_inputs/reference_human/GRCh38_EBV.chrom.sizes.tsv"
+    CHROM_SIZES_FILE="./steps_inputs/reference_human/GRCh38_EBV.chrom.sizes.tsv"
+    # "/oak/stanford/groups/akundaje/eila/git_tf_chromatin_atlas/steps_inputs/reference_human/GRCh38_EBV.chrom.sizes.tsv"
     echo "DEBUG: human CHROM_SIZES_FILE is: '$CHROM_SIZES_FILE'"
 elif [[ "$species" == "mouse" ]]; then
-    BLACKLIST_FILE="./chrombpnet_tutorial/data/downloads/blacklist_mouse.bed.gz"
+    BLACKLIST_FILE="./steps_inputs/reference_mouse/ENCFF547MET.bed.gz"
+    # "./chrombpnet_tutorial/data/downloads/blacklist_mouse.bed.gz"
     echo "DEBUG: mouse BLACKLIST_FILE is: '$BLACKLIST_FILE'"
-    CHROM_SIZES_FILE="/oak/stanford/groups/akundaje/eila/git_tf_chromatin_atlas/steps_inputs/reference_mouse/GRCh38_EBV.chrom.sizes.tsv"
+    CHROM_SIZES_FILE="./steps_inputs/reference_mouse/mm10_no_alt.chrom.sizes.tsv"
+    # "/oak/stanford/groups/akundaje/eila/git_tf_chromatin_atlas/steps_inputs/reference_mouse/GRCh38_EBV.chrom.sizes.tsv"
     echo "DEBUG: mouse CHROM_SIZES_FILE is: '$CHROM_SIZES_FILE'"
 else
     echo "Error: Unsupported species '$species'."

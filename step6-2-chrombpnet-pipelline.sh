@@ -27,7 +27,7 @@ module load system cairo
 mkdir -p local_logs
 
 # Get current timestamp and job name
-TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+# TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 JOB_NAME=${SLURM_JOB_NAME}
 
 # Define the CSV file with task details passed as the first argument
@@ -45,28 +45,30 @@ PEAKS_PATH=$(echo "$LINE" | awk '{print $5}')
 BAM_PATH=$(echo "$LINE" | awk '{print $6}')
 NEGATIVE_FILE=$(echo "$LINE" | awk '{print $7}')
 
-# Define the output directory with date and time included
-OUT_DIR="${GROUP_SCRATCH}/${USER}/encode_pseudobulks/encode_pseudobulks_model_training/${SPECIES}/${ID1}/${ID2}/${FOLD_ID}/${ID1}_${FOLD_ID}_${JOB_NAME}_${TIMESTAMP}"
+# Define the output directory
+OUT_DIR="${GROUP_SCRATCH}/${USER}/encode_pseudobulks/encode_pseudobulks_model_training/${SPECIES}/${ID1}/${ID2}/${FOLD_ID}/${JOB_NAME}"
 
-# Check if the OUT_DIR already exists and contains the required folders
+# Search for existing directories matching the pattern
+EXISTING_OUT_DIRS=$(find "$OUT_DIR" -maxdepth 0 -type d 2>/dev/null || true)
+
+# Check if any of the existing directories contain the required folders
 REQUIRED_FOLDERS=("auxiliary" "evaluation" "logs" "models")
-
-if [ -d "$OUT_DIR" ]; then
+for EXISTING_DIR in $EXISTING_OUT_DIRS; do
     all_exist=true
     for folder in "${REQUIRED_FOLDERS[@]}"; do
-        if [ ! -d "$OUT_DIR/$folder" ]; then
+        if [ ! -d "$EXISTING_DIR/$folder" ]; then
             all_exist=false
             break
         fi
     done
-    
+
     if $all_exist; then
-        echo "Output directory and required folders already exist: $OUT_DIR. Exiting."
+        echo "Output directory and required folders already exist: $EXISTING_DIR. Exiting."
         exit 0
     fi
-fi
+done
 
-# Set reference paths based on detected species
+# Check if all reference parameters exist
 if [ "$SPECIES" == "human" ]; then
     FASTA_PATH="./steps_inputs/reference_human/GRCh38_no_alt_analysis_set_GCA_000001405.15.fasta"
     CHROM_SIZES_PATH="./steps_inputs/reference_human/GRCh38_EBV.chrom.sizes.tsv"
@@ -76,7 +78,7 @@ if [ "$SPECIES" == "human" ]; then
 elif [ "$SPECIES" == "mouse" ]; then
     FASTA_PATH="./steps_inputs/reference_mouse/mm10_no_alt_analysis_set_ENCODE.fasta"
     CHROM_SIZES_PATH="./steps_inputs/reference_mouse/mm10_no_alt.chrom.sizes.tsv"
-    BLACK_LIST_BED_PATH="./steps_inputs/reference_mouse/boyang/mm10.blacklist.bed.gz"
+    BLACK_LIST_BED_PATH="./steps_inputs/reference_mouse/ENCFF547MET.bed.gz"
     FOLD_PATH="./steps_inputs/reference_mouse/mouse_folds_splits/${FOLD_ID}.json"
     BIAS_MODEL_PATH="./steps_inputs/reference_mouse/mouse-fold_0-level1-ENCSR858YSB-adrenal_cortical_cell.h5"
 else
@@ -94,7 +96,7 @@ for file in "${required_files[@]}"; do
     fi
 done
 
-# Create the output directory
+# Create the output directory if none of the existing directories match the criteria
 mkdir -p "$OUT_DIR"
 
 # Print the output directory

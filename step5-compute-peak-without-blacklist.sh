@@ -42,14 +42,17 @@ echo "Debug: Converted species to lowercase: ${species}"
 
 # Set reference paths based on detected species
 if [ "$species" == "human" ]; then
-    FASTA_PATH=./steps_inputs/reference_human/GRCh38_no_alt_analysis_set_GCA_000001405.15.fasta
-    CHROM_SIZES_PATH=./steps_inputs/reference_human/GRCh38_EBV.chrom.sizes.tsv
-    BLACK_LIST_BED_PATH=./steps_inputs/reference_human/ENCFF356LFX.bed.gz
+    FASTA_PATH="./steps_inputs/reference_human/GRCh38_no_alt_analysis_set_GCA_000001405.15.fasta"
+    # ./steps_inputs/reference_human/GRCh38_no_alt_analysis_set_GCA_000001405.15.fasta
+    # CHROM_SIZES_PATH=./steps_inputs/reference_human/GRCh38_EBV.chrom.sizes.tsv
+    CHROM_SIZES_PATH="./steps_inputs/reference_human/GRCh38_EBV.chrom.sizes.tsv"
+    # BLACK_LIST_BED_PATH=./steps_inputs/reference_human/ENCFF356LFX.bed.gz
+    BLACK_LIST_BED_PATH="./steps_inputs/reference_human/ENCFF356LFX.bed.gz"
     echo "Debug: Set human reference paths."
 elif [ "$species" == "mouse" ]; then
-    FASTA_PATH=./steps_inputs/reference_mouse/mm10_no_alt_analysis_set_GCA_000001635.2.fasta
-    CHROM_SIZES_PATH=./steps_inputs/reference_mouse/mm10.chrom.sizes.tsv
-    BLACK_LIST_BED_PATH=./steps_inputs/reference_mouse/ENCFF547MET.bed.gz
+    FASTA_PATH="./steps_inputs/reference_mouse/mm10_no_alt_analysis_set_ENCODE.fasta"
+    CHROM_SIZES_PATH="./steps_inputs/reference_mouse/mm10_no_alt.chrom.sizes.tsv"
+    BLACK_LIST_BED_PATH="./steps_inputs/reference_mouse/ENCFF547MET.bed.gz"
     echo "Debug: Set mouse reference paths."
 else
     echo "Error: Unsupported species '$species'."
