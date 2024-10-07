@@ -68,6 +68,11 @@ for EXISTING_DIR in $EXISTING_OUT_DIRS; do
     fi
 done
 
+FASTA_PATH=""
+CHROM_SIZES_PATH=""
+BLACK_LIST_BED_PATH=""
+FOLD_PATH=""
+BIAS_MODEL_PATH=""
 # Check if all reference parameters exist
 if [ "$SPECIES" == "human" ]; then
     FASTA_PATH="./steps_inputs/reference_human/GRCh38_no_alt_analysis_set_GCA_000001405.15.fasta"

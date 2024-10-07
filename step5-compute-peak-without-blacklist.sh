@@ -40,13 +40,13 @@ echo "Debug: Extracted id_1: ${id_1}, id_2: ${id_2}, species: ${species}"
 species=$(echo "$species" | tr '[:upper:]' '[:lower:]')
 echo "Debug: Converted species to lowercase: ${species}"
 
+FASTA_PATH=""
+CHROM_SIZES_PATH=""
+BLACK_LIST_BED_PATH=""
 # Set reference paths based on detected species
 if [ "$species" == "human" ]; then
     FASTA_PATH="./steps_inputs/reference_human/GRCh38_no_alt_analysis_set_GCA_000001405.15.fasta"
-    # ./steps_inputs/reference_human/GRCh38_no_alt_analysis_set_GCA_000001405.15.fasta
-    # CHROM_SIZES_PATH=./steps_inputs/reference_human/GRCh38_EBV.chrom.sizes.tsv
     CHROM_SIZES_PATH="./steps_inputs/reference_human/GRCh38_EBV.chrom.sizes.tsv"
-    # BLACK_LIST_BED_PATH=./steps_inputs/reference_human/ENCFF356LFX.bed.gz
     BLACK_LIST_BED_PATH="./steps_inputs/reference_human/ENCFF356LFX.bed.gz"
     echo "Debug: Set human reference paths."
 elif [ "$species" == "mouse" ]; then
