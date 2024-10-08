@@ -8,7 +8,6 @@
 #SBATCH --output=local_logs/slurm.step5NegativesNoPeaksBackground.combined.out
 #SBATCH --error=local_logs/slurm.step5NegativesNoPeaksBackground.combined.err
 
-# TODO: might need less memory
 # Set script to exit on errors, undefined variables, or command failures in pipelines
 set -euo pipefail
 
@@ -59,99 +58,77 @@ else
     exit 1
 fi
 
-# Define directories and paths
+# Define the output directory based on ID and species
 OUT_DIR="${GROUP_SCRATCH}/${USER}/encode_pseudobulks/encode_pseudobulks_negative/${species}/${id_1}/${id_2}"
 PEAKS_NO_BLACKLIST=$(echo "$LINE" | awk '{print $3}')
-echo "$PEAKS_NO_BLACKLIST"
 echo "Debug: OUT_DIR is set to: ${OUT_DIR}"
 echo "Debug: PEAKS_NO_BLACKLIST is set to: ${PEAKS_NO_BLACKLIST}"
 
-# Check if the PEAKS file exists
+# 1. Check if all global input files are available before proceeding
 if [ ! -f "${PEAKS_NO_BLACKLIST}" ]; then
-    echo "Error: The PEAKS_NO_BLACKLIST file ${PEAKS_NO_BLACKLIST} does not exist."
+    echo "Error: The PEAKS_NO_BLACKLIST file ${PEAKS_NO_BLACKLIST} does not exist. Exiting."
     exit 1
 else
     echo "Debug: PEAKS_NO_BLACKLIST file exists."
 fi
 
-# Print the contents of the PEAKS_NO_BLACKLIST file
-echo "Debug: Checking the contents of the PEAKS_NO_BLACKLIST file: ${PEAKS_NO_BLACKLIST}"
-# head -n 5 "${PEAKS_NO_BLACKLIST}"  # Print first 5 lines as a quick check
+if [ ! -f "${FASTA_PATH}" ] || [ ! -f "${CHROM_SIZES_PATH}" ] || [ ! -f "${BLACK_LIST_BED_PATH}" ]; then
+    echo "Error: One or more reference files are missing (FASTA, CHROM_SIZES, or BLACK_LIST). Exiting."
+    exit 1
+else
+    echo "Debug: All reference files (FASTA, CHROM_SIZES, BLACK_LIST) are available."
+fi
 
 # Loop through 0 to 4 to create folds
 for i in {0..4}; do
     fold=${i}
     FOLD_OUT_DIR=${OUT_DIR}/fold_${fold}
-    mkdir -p "$FOLD_OUT_DIR"
-    echo "Debug: Processing fold ${fold}. FOLD_OUT_DIR is set to: ${FOLD_OUT_DIR}"
 
     # Set fold path based on species
     if [ "$species" == "human" ]; then
         FOLD_PATH=./steps_inputs/reference_human/human_folds_splits/fold_${fold}.json
-        echo "Debug: Set human FOLD_PATH for fold ${fold}."
     elif [ "$species" == "mouse" ]; then
         FOLD_PATH=./steps_inputs/reference_mouse/mouse_folds_splits/fold_${fold}.json
-        echo "Debug: Set mouse FOLD_PATH for fold ${fold}."
     fi
-    
-    # Check if the output for the current fold already exists
-    OUTPUT_FILE="${FOLD_OUT_DIR}/${id_1}_${id_2}_${species}_nonpeaks"
 
-    if [ -f "${OUTPUT_FILE}" ]; then
-        echo "Skipping fold ${fold} as output file ${OUTPUT_FILE} already exists."
+    # 2. Check if fold-specific file exists before creating FOLD_OUT_DIR
+    if [ ! -f "${FOLD_PATH}" ]; then
+        echo "Error: Fold file ${FOLD_PATH} does not exist. Skipping fold ${fold}."
         continue
     else
-        echo "Debug: Output file ${OUTPUT_FILE} does not exist. Proceeding with chrombpnet prep nonpeaks."
+        echo "Debug: Fold file ${FOLD_PATH} exists."
     fi
 
-    # Create directory for the current fold if not already present
-    mkdir -p "${FOLD_OUT_DIR}"
-    echo "Debug: Created ${FOLD_OUT_DIR}."
+    # Define the base path for the output file
+    NONPEAKS_NEGATIVES_FILE_BASE="${FOLD_OUT_DIR}/${id_1}_${id_2}_${species}_nonpeaks"
 
-    # Print detailed debug information for paths and parameters
-    echo "Debug: ENCSRID: ${id_1}"
-    echo "Debug: fold_number: ${fold}"
-    echo "Debug: species: ${species}"
-    echo "Debug: Current working directory: $(pwd)"
-    
-    echo "Debug: Listing contents of OUT_DIR:"
-    ls -l "${OUT_DIR}" || echo "Debug: OUT_DIR does not exist or is empty."
-    
-    echo "Debug: Listing contents of PEAKS_NO_BLACKLIST directory:"
-    ls -l "$(dirname "${PEAKS_NO_BLACKLIST}")"
-    
-    echo "Debug: Listing contents of FASTA_PATH directory:"
-    ls -l "$(dirname "${FASTA_PATH}")"
-    
-    echo "Debug: Listing contents of CHROM_SIZES_PATH directory:"
-    ls -l "$(dirname "${CHROM_SIZES_PATH}")"
-    
-    echo "Debug: Listing contents of FOLD_PATH directory:"
-    ls -l "$(dirname "${FOLD_PATH}")"
-    
-    echo "Debug: Listing contents of BLACK_LIST_BED_PATH directory:"
-    ls -l "$(dirname "${BLACK_LIST_BED_PATH}")"
+    # 3. Skip execution if the specific nonpeaks negatives file already exists
+    NONPEAKS_NEGATIVES_FILE="${NONPEAKS_NEGATIVES_FILE_BASE}.bed"
+    if [ -f "${NONPEAKS_NEGATIVES_FILE}" ]; then
+        echo "Skipping fold ${fold} as nonpeaks negatives file ${NONPEAKS_NEGATIVES_FILE} already exists."
+        continue
+    else
+        echo "Debug: Nonpeaks negatives file ${NONPEAKS_NEGATIVES_FILE} does not exist. Proceeding."
+    fi
 
-    # Print the chrombpnet command with parameters
-    echo "Running command:"
-    echo "chrombpnet prep nonpeaks \
-        -g ${FASTA_PATH} \
-        -p ${PEAKS_NO_BLACKLIST} \
-        -c ${CHROM_SIZES_PATH} \
-        -f ${FOLD_PATH} \
-        -br ${BLACK_LIST_BED_PATH} \
-        -o ${OUTPUT_FILE}"
+    # 4. Create the output directory only if input checks are passed and the specific nonpeaks negatives file is missing
+    mkdir -p "$FOLD_OUT_DIR"
+    echo "Debug: Created FOLD_OUT_DIR: ${FOLD_OUT_DIR}"
 
-    # Execute the chrombpnet prep nonpeaks command
+    # Run the chrombpnet prep nonpeaks command using NONPEAKS_NEGATIVES_FILE_BASE
     chrombpnet prep nonpeaks \
         -g "${FASTA_PATH}" \
         -p "${PEAKS_NO_BLACKLIST}" \
         -c "${CHROM_SIZES_PATH}" \
         -f "${FOLD_PATH}" \
         -br "${BLACK_LIST_BED_PATH}" \
-        -o "${OUTPUT_FILE}"
-    
+        -o "${NONPEAKS_NEGATIVES_FILE_BASE}"
+
     echo "Debug: Completed chrombpnet prep nonpeaks for fold ${fold}."
+
+    # Rename the generated file with a .bed extension
+    mv "${NONPEAKS_NEGATIVES_FILE_BASE}" "${NONPEAKS_NEGATIVES_FILE}"
+    echo "Debug: Moved ${NONPEAKS_NEGATIVES_FILE_BASE} to ${NONPEAKS_NEGATIVES_FILE}."
 done
 
 echo "Debug: Script completed successfully."
