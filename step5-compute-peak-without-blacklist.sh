@@ -2,6 +2,7 @@
 
 #SBATCH --time=00:30:00
 #SBATCH --ntasks=1
+#SBATCH --cpus-per-task=4  # Request 4 CPUs per task
 #SBATCH --mem=64GB
 #SBATCH --partition=akundaje,owners
 #SBATCH --job-name=step5NegativesNoPeaksBackground
@@ -111,24 +112,22 @@ for i in {0..4}; do
         echo "Debug: Nonpeaks negatives file ${NONPEAKS_NEGATIVES_FILE} does not exist. Proceeding."
     fi
 
-    # 4. Create the output directory only if input checks are passed and the specific nonpeaks negatives file is missing
+    # 4. If the nonpeaks negatives file does not exist, clear the output directory
+    if [ ! -f "${NONPEAKS_NEGATIVES_FILE_BASE}" ]; then
+        echo "Debug: Clearing all subdirectories in ${FOLD_OUT_DIR} since ${NONPEAKS_NEGATIVES_FILE_BASE} does not exist."
+        rm -rf "${FOLD_OUT_DIR}"/*
+    fi
+
+    # 5. Create the output directory only if input checks are passed and the specific nonpeaks negatives file is missing
     mkdir -p "$FOLD_OUT_DIR"
     echo "Debug: Created FOLD_OUT_DIR: ${FOLD_OUT_DIR}"
 
-    # Run the chrombpnet prep nonpeaks command using NONPEAKS_NEGATIVES_FILE_BASE
-    chrombpnet prep nonpeaks \
-        -g "${FASTA_PATH}" \
-        -p "${PEAKS_NO_BLACKLIST}" \
-        -c "${CHROM_SIZES_PATH}" \
-        -f "${FOLD_PATH}" \
-        -br "${BLACK_LIST_BED_PATH}" \
-        -o "${NONPEAKS_NEGATIVES_FILE_BASE}"
+    # Run the chrombpnet prep nonpeaks command
+    CHROMBPNET_PREP_NONPEAKS="chrombpnet prep nonpeaks -g \"${FASTA_PATH}\" -p \"${PEAKS_NO_BLACKLIST}\" -c \"${CHROM_SIZES_PATH}\" -f \"${FOLD_PATH}\" -br \"${BLACK_LIST_BED_PATH}\" -o \"${NONPEAKS_NEGATIVES_FILE_BASE}\""
+    echo "Executing command: $CHROMBPNET_PREP_NONPEAKS"
+    eval $CHROMBPNET_PREP_NONPEAKS
 
     echo "Debug: Completed chrombpnet prep nonpeaks for fold ${fold}."
-
-    # Rename the generated file with a .bed extension
-    mv "${NONPEAKS_NEGATIVES_FILE_BASE}" "${NONPEAKS_NEGATIVES_FILE}"
-    echo "Debug: Moved ${NONPEAKS_NEGATIVES_FILE_BASE} to ${NONPEAKS_NEGATIVES_FILE}."
 done
 
 echo "Debug: Script completed successfully."
