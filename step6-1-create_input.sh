@@ -30,8 +30,14 @@ echo "Starting the extraction process. Base path for negatives: ${negative_base_
 
 # Loop through the directories to extract the relevant information
 for negative_path in $(ls -d ${negative_base_path}/*/*/*/fold_*); do
+
     echo "-----------------------------"
     echo "Processing negative path: ${negative_path}"  # Debug message for current negative path
+
+    # List all files under the negative path
+    echo "Listing all files under ${negative_path}:"
+    ls -lh "${negative_path}"
+
     
     # Extract the species, ID1, ID2, and fold_id from the path
     species=$(basename $(dirname $(dirname $(dirname "${negative_path}"))))
@@ -66,8 +72,19 @@ for negative_path in $(ls -d ${negative_base_path}/*/*/*/fold_*); do
         continue
     fi
 
+    # Check if the negative file exists, and remove the folder if it doesn't
     if [[ ! -f "${negative_file}" ]]; then
         echo "Error: Missing negative file ${negative_file}"
+
+        # Remove the directory containing the missing negative file. 
+        # !!!Dont uncomment the rm command while step 5 is running and creating the negative files!!!!
+        echo "Removing directory due to missing negative file: ${negative_path}"
+        echo "Debug: The following files will be removed from ${negative_path}:"
+        echo "********************************"
+        ls -l "${negative_path}"
+        echo "********************************"
+        # rm -rf "${negative_path}"
+        
         continue
     fi
 
@@ -75,14 +92,14 @@ for negative_path in $(ls -d ${negative_base_path}/*/*/*/fold_*); do
     echo "Writing to main output file: ${output_file}"
     echo "${species} ${ID1} ${ID2} ${fold_id} ${filtered_peaks_path} ${bam_path} ${negative_file}" >> "$output_file"
 
-    # If the fold_id is fold_0, also write to the fold_0 output file
+    # Check if the fold_id is fold_0 and write to the fold_0 file
     if [[ "${fold_id}" == "fold_0" ]]; then
         echo "Writing to fold_0 output file: ${fold0_output_file}"
         echo "${species} ${ID1} ${ID2} ${fold_id} ${filtered_peaks_path} ${bam_path} ${negative_file}" >> "$fold0_output_file"
     fi
 
-    # Debug message for completion of the current path
-    echo "Completed processing for negative path: ${negative_path}"
+    echo "-----------------------------"
+    echo "-----------------------------"
     echo "-----------------------------"
 done
 

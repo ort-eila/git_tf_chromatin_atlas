@@ -26,7 +26,8 @@ echo "Total entries in input file: $total_entries"
 num_arrays=$(( (total_entries + entries_per_job - 1) / entries_per_job ))
 echo "Total number of job arrays to be submitted: $num_arrays"
 
-# Submit job arrays
+# Submit job arrays and capture the last job ID
+recent_jobs=""
 for i in $(seq 0 $((num_arrays - 1))); do
     start=$(( i * entries_per_job + 1 ))
     end=$(( (i + 1) * entries_per_job ))
@@ -36,7 +37,41 @@ for i in $(seq 0 $((num_arrays - 1))); do
         end=$total_entries
     fi
 
-    # Submit the job array with verbose output
+    # Submit the job array and capture the job ID
     echo "Submitting job array from $start to $end with a maximum of $max_concurrent_tasks concurrent tasks."
-    sbatch --verbose --array=${start}-${end}%${max_concurrent_tasks} "$SCRIPT_NAME" "$INPUT_FILE"
+    job_id=$(sbatch --verbose --array=${start}-${end}%${max_concurrent_tasks} "$SCRIPT_NAME" "$INPUT_FILE" | awk '{print $NF}')
+    
+    # Append the job_id to recent_jobs
+    if [ -z "$recent_jobs" ]; then
+        recent_jobs=$job_id
+    else
+        recent_jobs="${recent_jobs},$job_id"
+    fi
 done
+
+# Function to check if all tasks have completed
+check_job_completion() {
+    jobs=$1
+
+    while true; do
+        # Check if any tasks are still pending or running for the job array
+        pending_or_running=$(squeue --jobs=$jobs --states=PD,R --noheader)
+
+        if [ -z "$pending_or_running" ]; then
+            echo "All tasks for jobs $jobs have completed."
+            break
+        else
+            echo "Waiting for jobs $jobs to complete... Sleeping for 20 minutes."
+            sleep 1200  # Sleep for 20 minutes (1200 seconds)
+        fi
+    done
+}
+
+# Wait for all tasks in the job array to complete
+check_job_completion "$recent_jobs"
+
+# Resubmit the script once all tasks are completed
+if [ -n "$recent_jobs" ]; then
+    echo "Resubmitting job after completion of recent jobs: $recent_jobs"
+    sbatch "$0" "$INPUT_FILE" "$SCRIPT_NAME" "$entries_per_job" "$max_concurrent_tasks"
+fi
