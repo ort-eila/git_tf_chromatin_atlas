@@ -1,7 +1,7 @@
 #!/bin/bash
-#SBATCH --job-name=631_motifs_qc_processing
-#SBATCH --output=local_logs/631_motifs_qc_processing.out
-#SBATCH --error=local_logs/631_motifs_qc_processing.err
+#SBATCH --job-name=633_motifs_qc_bias_tn5
+#SBATCH --output=local_logs/633_motifs_qc_bias_tn5.out
+#SBATCH --error=local_logs/633_motifs_qc_bias_tn5.err
 #SBATCH --ntasks=1                    # Number of tasks
 #SBATCH --cpus-per-task=4             # CPUs per task
 #SBATCH --mem=16GB                    # Memory per node
@@ -14,9 +14,9 @@ eval "$(conda shell.bash hook)"
 conda activate chrombpnet
 echo "Conda environment 'chrombpnet' activated."
 
-# Define input file path, output directory, and threshold
+# Define input file path and threshold
 input_file_path="$1"  # The first argument is the input file path
-threshold=100         # The threshold for motif filtering
+threshold=80         # The threshold for motif filtering - for the BLAST similarity value
 
 # Extract identifiers for constructing base_logo_dir
 ENCSR_id=$(echo "$input_file_path" | awk -F'/' '{print $(NF-6)}')
@@ -28,7 +28,7 @@ base_logo_dir="$GROUP_SCRATCH/eila/encode_pseudobulks/old_encode_pseudobulks_mod
 echo "Base logo directory set to: $base_logo_dir"
 
 # Define output directory based on the input file's directory
-output_dir="$GROUP_SCRATCH/eila/encode_pseudobulks/old_encode_pseudobulks_model_training/human/${ENCSR_id}/${ENCFF_id}/fold_0/step62.bpnetPipeline/qc/out_step_6_3_1_motifs_qc"
+output_dir="$GROUP_SCRATCH/eila/encode_pseudobulks/old_encode_pseudobulks_model_training/human/${ENCSR_id}/${ENCFF_id}/fold_0/step62.bpnetPipeline/qc/out_step_6_3_3_motifs_qc_bias_tn5"
 
 echo "Output directory set to: $output_dir"
 
@@ -44,8 +44,8 @@ for group_type in "neg_patterns" "pos_patterns"; do
 
     # Prepare the Python command to run the filtering function
     cmd_to_run="
-from step6_3_1_remove_motifs_with_low_numseqs import filter_and_copy_patterns
-filter_and_copy_patterns('$input_file_path', '$output_dir', '$group_type', '$base_logo_dir', $threshold)
+from step6_3_3_filter_motifs_with_tn5_bias import filter_and_copy_patterns
+filter_and_copy_patterns('$input_file_path', '$output_dir', '$group_type', '$base_logo_dir', int($threshold))
     "
 
     # Execute the Python command
@@ -53,4 +53,4 @@ filter_and_copy_patterns('$input_file_path', '$output_dir', '$group_type', '$bas
     python -c "$cmd_to_run"
 done
 
-echo "Motif QC processing completed."
+echo "Motif QC bias TN5 processing completed."
