@@ -6,7 +6,7 @@ import os
 logging.basicConfig(level=logging.DEBUG, 
                     format="%(asctime)s - %(levelname)s - %(message)s")
 
-# Predefined TN5 isoforms
+# Predefined TN5 isoforms. Taken from chrombpet output
 TN5_ISOFORMS = [
     "GCACAGTACAGAGCTG",         # tn5_1
     "GTGCACAGTTCTAGAGTGTGCAG",  # tn5_2
@@ -60,10 +60,19 @@ def decode_seqlet(one_hot_seqlet):
         one_hot_seqlet (numpy.ndarray): One-hot encoded sequence of shape (N, 4).
     Returns:
         str: Decoded nucleotide sequence.
+    
+    Example:
+    one_hot_seqlet = np.array([
+    [1, 0, 0, 0],  # A
+    [0, 1, 0, 0],  # C
+    [0, 0, 1, 0],  # G
+    [0, 0, 0, 1]   # T])
     """
     import numpy as np
+  # must be the same order as in the chrombpnet model training code: ["A", "C", "G", "T", "N"]
     nucleotide_map = ['A', 'C', 'G', 'T']
     try:
+      # np.argmax(base) - will give the index that is on (1) in the seqlet on host encode
         decoded_seqlet = ''.join(nucleotide_map[np.argmax(base)] for base in one_hot_seqlet)
         return decoded_seqlet
     except Exception as e:
@@ -71,18 +80,56 @@ def decode_seqlet(one_hot_seqlet):
         return ""
 
 def copy_logo_images(group_type, pattern_name, valid_dir, invalid_dir, is_valid, base_logo_dir):
-    source_logo_dir = os.path.join(base_logo_dir, group_type, pattern_name)
+    """
+    Copies logo images from a source directory to either the valid or invalid directory,
+    depending on whether the pattern is valid or not. Raises an error if the source directory doesn't exist.
+    
+    Parameters:
+        group_type (str): The type of group (e.g., 'neg_patterns' or 'pos_patterns').
+        pattern_name (str): The name of the pattern (e.g., 'pattern_1').
+        valid_dir (str): The directory where valid logos should be copied.
+        invalid_dir (str): The directory where invalid logos should be copied.
+        is_valid (bool): Whether the pattern is valid. If True, copy to the valid directory.
+        base_logo_dir (str): The base directory where logo files are located.
+    """
+    import glob
+
+    # Construct source logo directory path using the provided base directory, group type, and pattern name.
+    source_logo_dir = os.path.join(base_logo_dir, group_type + '.' + pattern_name + '.*')
     target_dir = valid_dir if is_valid else invalid_dir
-    logging.debug(f"Copying logos from {source_logo_dir} to {target_dir}")
-    if os.path.exists(source_logo_dir):
-        os.makedirs(target_dir, exist_ok=True)
-        for file_name in os.listdir(source_logo_dir):
-            source_path = os.path.join(source_logo_dir, file_name)
-            target_path = os.path.join(target_dir, file_name)
+    
+    # Check if the source directory exists
+    if not os.path.isdir(base_logo_dir):
+        error_msg = f"Source logo directory {base_logo_dir} does not exist."
+        logging.error(error_msg)
+        raise FileNotFoundError(error_msg)
+
+    # Create target directory if it doesn't exist
+    os.makedirs(target_dir, exist_ok=True)
+
+    # Use glob to list files matching the pattern in the source directory
+    source_files = glob.glob(source_logo_dir)
+    
+    # If no files matched the pattern, raise an error
+    if not source_files:
+        error_msg = f"No files matched the pattern {source_logo_dir}."
+        logging.error(error_msg)
+        raise FileNotFoundError(error_msg)
+
+    # Process each file in the source directory
+    for source_path in source_files:
+        file_name = os.path.basename(source_path)
+        target_path = os.path.join(target_dir, file_name)
+        
+        logging.debug(f"Copying file {source_path} to {target_path}")
+        
+        # Only process if it's a file (not a directory)
+        if os.path.isfile(source_path):
+            # Create a symlink from the source to the target directory
             os.symlink(source_path, target_path)
-        logging.info(f"Copied logos for pattern: {pattern_name} to {'valid' if is_valid else 'invalid'} directory.")
-    else:
-        logging.warning(f"Source logo directory {source_logo_dir} does not exist. Skipping logo copying.")
+            logging.info(f"Copied logo: {file_name} to {'valid' if is_valid else 'invalid'} directory.")
+        else:
+            logging.warning(f"Skipping {file_name} as it is not a file.")
 
 def filter_and_copy_patterns(input_file_path, output_dir, group_type, base_logo_dir, threshold):
     valid_output_file_path = os.path.join(output_dir, f"{group_type}_valid.h5")
