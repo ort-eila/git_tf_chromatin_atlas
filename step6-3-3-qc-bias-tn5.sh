@@ -4,8 +4,8 @@
 #SBATCH --error=local_logs/633_motifs_qc_bias_tn5.err
 #SBATCH --ntasks=1                    # Number of tasks
 #SBATCH --cpus-per-task=4             # CPUs per task
-#SBATCH --mem=16GB                    # Memory per node
-#SBATCH --time=02:00:00               # Time limit (hrs:min:sec)
+#SBATCH --mem=8GB                     # Memory per node
+#SBATCH --time=10:00:00               # Time limit (hrs:min:sec)
 #SBATCH --partition=akundaje,owners   # Partition name
 
 # Load Conda environment
