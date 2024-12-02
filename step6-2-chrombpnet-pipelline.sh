@@ -2,7 +2,7 @@
 #SBATCH --time=2-00:00:00
 #SBATCH --ntasks=1
 #SBATCH -G 1
-#SBATCH --mem=64GB
+#SBATCH --mem=128GB
 #SBATCH --partition=akundaje,owners
 #SBATCH --job-name=step62.bpnetPipeline
 #SBATCH --output=local_logs/slurm.step62.bpnetPipeline.combined.out
