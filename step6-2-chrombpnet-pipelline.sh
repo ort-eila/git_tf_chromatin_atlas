@@ -4,9 +4,9 @@
 #SBATCH -G 1
 #SBATCH --mem=128GB
 #SBATCH --partition=akundaje,owners
-#SBATCH --job-name=step62.bpnetPipeline
-#SBATCH --output=local_logs/slurm.step62.bpnetPipeline.combined.out
-#SBATCH --error=local_logs/slurm.step62.bpnetPipeline.combined.err
+#SBATCH --job-name=step62.ENCSR730JYE
+#SBATCH --output=local_logs/slurm.step62.ENCSR730JYE.combined.out
+#SBATCH --error=local_logs/slurm.step62.ENCSR730JYE.combined.err
 
 # Exit on errors, undefined variables, or command failures in pipelines
 set -euo pipefail 
@@ -48,25 +48,13 @@ NEGATIVE_FILE=$(echo "$LINE" | awk '{print $7}')
 # Define the output directory
 OUT_DIR="${GROUP_SCRATCH}/${USER}/encode_pseudobulks/encode_pseudobulks_model_training/${SPECIES}/${ID1}/${ID2}/${FOLD_ID}/${JOB_NAME}"
 
-# Search for existing directories matching the pattern
-EXISTING_OUT_DIRS=$(find "$OUT_DIR" -maxdepth 0 -type d 2>/dev/null || true)
+# Check if modisco_results_profile_scores.h5 exists in the specified path
+if [ ! -f "${OUT_DIR}/auxiliary/interpret_subsample/modisco_results_profile_scores.h5" ]; then
+    # If the file does not exist, delete the OUT_DIR
+    rm -rf "$OUT_DIR"
+    echo "File modisco_results_profile_scores.h5 does not exist. Directory ${OUT_DIR} has been deleted."
+fi
 
-# Check if any of the existing directories contain the required folders
-REQUIRED_FOLDERS=("auxiliary" "evaluation" "logs" "models")
-for EXISTING_DIR in $EXISTING_OUT_DIRS; do
-    all_exist=true
-    for folder in "${REQUIRED_FOLDERS[@]}"; do
-        if [ ! -d "$EXISTING_DIR/$folder" ]; then
-            all_exist=false
-            break
-        fi
-    done
-
-    if $all_exist; then
-        echo "Output directory and required folders already exist: $EXISTING_DIR. Exiting."
-        exit 0
-    fi
-done
 
 FASTA_PATH=""
 CHROM_SIZES_PATH=""

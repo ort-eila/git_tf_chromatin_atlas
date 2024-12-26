@@ -42,17 +42,16 @@ fi
 
 # Extract fields from the line
 ENCSR_ID=$(echo "$LINE" | awk '{print $1}')
-FILE_ID=$(echo "$LINE" | awk '{print $2}')
-FILE_NAME=$(echo "$LINE" | awk '{print $3}')
-DOWNLOAD_URL=$(echo "$LINE" | awk '{print $4}')
+ENCFF_ID=$(echo "$LINE" | awk '{print $2}')
+DOWNLOAD_URL=$(echo "$LINE" | awk '{print $3}')
 
 # Define output directories and file paths
 OUT_DIR="${GROUP_SCRATCH}/${USER}/encode_pseudobulks/encode_pseudobulks_data/peaks/${ENCSR_ID}"
-FILE_DIR="${OUT_DIR}/${FILE_ID}"
+FILE_DIR="${OUT_DIR}/${ENCFF_ID}"
 mkdir -p "${FILE_DIR}"
 
 # Define the output file path
-OUTPUT_FILE="${FILE_DIR}/${ENCSR_ID}_${FILE_ID}.bed.gz"
+OUTPUT_FILE="${FILE_DIR}/${ENCSR_ID}_${ENCFF_ID}.bed.gz"
 
 # Export credentials as environment variables
 echo "Extracted ACCESS_KEY: ${ACCESS_KEY}"
@@ -66,7 +65,7 @@ if [ -f "${OUTPUT_FILE}" ]; then
   echo "File already exists: ${OUTPUT_FILE}. Skipping download."
 else
   # Download the file
-  echo "Downloading ${FILE_NAME} from ${DOWNLOAD_URL} to ${OUTPUT_FILE}..."
+  echo "Downloading ${ENCFF_ID} from ${DOWNLOAD_URL} to ${OUTPUT_FILE}..."
   curl -sRL -u ${ACCESS_KEY}:${SECRET_KEY} ${DOWNLOAD_URL} -o ${OUTPUT_FILE}
   echo "Download complete: ${OUTPUT_FILE}"
 
