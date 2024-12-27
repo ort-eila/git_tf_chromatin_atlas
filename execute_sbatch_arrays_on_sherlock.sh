@@ -1,19 +1,10 @@
 #!/bin/bash
 
-# Function to print usage information
-print_usage() {
-    echo "Usage: $0 <input_file> <script_name> <entries_per_job> <max_concurrent_tasks>"
-    echo "  <input_file>           : Path to the input file with entries to process."
-    echo "  <script_name>          : Path to the script to be run by each job."
-    echo "  <entries_per_job>      : Number of entries to process per job."
-    echo "  <max_concurrent_tasks> : Max number of concurrent tasks per job array."
-    exit 1
-}
-
 # Validate number of arguments
 if [ "$#" -ne 4 ]; then
     echo "Error: Incorrect number of arguments."
-    print_usage
+    echo "Usage: $0 <input_file> <script_name> <entries_per_job> <max_concurrent_tasks>"
+    exit 1
 fi
 
 # Assign arguments to variables
@@ -59,12 +50,13 @@ done
 check_job_completion() {
     jobs=$1
     while true; do
+        # Use squeue to check the status of the jobs
         if [ -z "$(squeue --jobs="$jobs" --states=PD,R --noheader)" ]; then
             echo "All tasks for jobs $jobs have completed."
             break
         else
-            echo "Waiting for jobs $jobs to complete... Sleeping for 20 minutes."
-            sleep 1200
+            echo "Jobs $jobs are still running... checking again in 1 minute."
+            sleep 60  # Check every 60 seconds
         fi
     done
 }

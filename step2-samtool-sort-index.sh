@@ -1,16 +1,16 @@
 #!/bin/bash
 
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=8
+#SBATCH --cpus-per-task=16
 #SBATCH --mem=16GB
-#SBATCH --time=01:00:00
+#SBATCH --time=04:00:00
 #SBATCH --partition=akundaje,owners
-#SBATCH --output=local_logs/step2.index.combined.out
-#SBATCH --error=local_logs/step2.index.combined.err
+#SBATCH --output=local_logs/step2.ENCSR865OGT.combined.out
+#SBATCH --error=local_logs/step2.ENCSR865OGT.combined.err
 
-# Set script to exit on errors, undefined variables, or command failures in pipelines
+# Exit on errors, undefined variables, or pipeline failures
 set -euo pipefail
-set -x 
+set -x
 
 # Load necessary modules
 module load biology samtools
@@ -18,13 +18,13 @@ module load biology samtools
 # Define the input file path (passed as an argument)
 INPUT_FILE="$1"
 
-# Print the first few lines of the input file for debugging
-echo "INPUT_FILE is ($INPUT_FILE)"
+# Print debug message for input file
+echo "DEBUG: INPUT_FILE is ($INPUT_FILE)"
 
 # Extract the specific BAM file path based on SLURM_ARRAY_TASK_ID
 BAM_FILE=$(sed -n "${SLURM_ARRAY_TASK_ID}p" "$INPUT_FILE")
 if [ -z "$BAM_FILE" ]; then
-  echo "Error: No BAM file found for SLURM_ARRAY_TASK_ID=${SLURM_ARRAY_TASK_ID}."
+  echo "ERROR: No BAM file found for SLURM_ARRAY_TASK_ID=${SLURM_ARRAY_TASK_ID}."
   exit 1
 fi
 
@@ -32,72 +32,69 @@ echo "DEBUG: Processing BAM file: ${BAM_FILE}"
 
 # Check if the BAM file exists
 if [ ! -f "$BAM_FILE" ]; then
-  echo "Error: BAM file does not exist: ${BAM_FILE}"
+  echo "ERROR: BAM file does not exist: ${BAM_FILE}"
   exit 1
 fi
 
-# Print the content of the BAM file (header) for debugging
-echo "DEBUG: BAM file '$BAM_FILE' exists. Printing its header:"
-
-# Attempt to print the header using samtools, if it fails, delete the BAM file
-if ! samtools view -H "$BAM_FILE" &>/dev/null; then
-  echo "Error: BAM file '$BAM_FILE' is corrupted or unreadable. Deleting the file."
-  rm "$BAM_FILE"
+# Check BAM file integrity using samtools quickcheck
+echo "DEBUG: Verifying BAM file: $BAM_FILE"
+if ! samtools quickcheck "$BAM_FILE"; then
+  echo "ERROR: BAM file '$BAM_FILE' is corrupted or unreadable. Exiting."
   exit 1
 fi
 
-# If the header is successfully printed, continue processing
 samtools view -H "$BAM_FILE" | head -n 5
+echo "DEBUG: BAM file header preview completed."
 
-# Extract ENCSR_ID from the BAM file path (assuming filename format includes ENCSR_ID)
+# Extract ENCSR_ID from the BAM file path
 ENCSR_ID=$(basename "$BAM_FILE" | cut -d'_' -f1)
+echo "DEBUG: ENCSR_ID is $ENCSR_ID"
+
 
 # Define output paths
 OUT_DIR=$(dirname "$BAM_FILE")
 SORTED_BAM_FILE="${OUT_DIR}/${ENCSR_ID}_sorted.bam"
 SORTED_BAM_INDEX="${SORTED_BAM_FILE}.bai"
-
-echo "DEBUG: ENCSR_ID is $ENCSR_ID"
 echo "DEBUG: Sorted BAM file path: $SORTED_BAM_FILE"
 echo "DEBUG: Sorted BAM index file path: $SORTED_BAM_INDEX"
 
-# Check if the sorted BAM file and its index already exist
+# Check if sorted BAM and index already exist
 if [ -f "$SORTED_BAM_FILE" ] && [ -f "$SORTED_BAM_INDEX" ]; then
-  echo "Sorted BAM file and index already exist: ${SORTED_BAM_FILE}. Skipping sorting and indexing."
+  echo "DEBUG: Sorted BAM file and index already exist. Skipping processing."
 else
-  # If any of the files are missing, clean up the incomplete files/folder
-  echo "DEBUG: Sorted BAM or index missing, cleaning up incomplete files."
+  # Clean up partially generated files
+  [ -f "$SORTED_BAM_FILE" ] && rm "$SORTED_BAM_FILE" && echo "DEBUG: Removed incomplete sorted BAM file."
+  [ -f "$SORTED_BAM_INDEX" ] && rm "$SORTED_BAM_INDEX" && echo "DEBUG: Removed incomplete BAM index."
 
-  # Remove the sorted BAM file if it exists (may be partially generated)
-  if [ -f "$SORTED_BAM_FILE" ]; then
-    echo "DEBUG: Removing incomplete sorted BAM file: $SORTED_BAM_FILE"
-    rm "$SORTED_BAM_FILE"
+  # Check if output directory exists and is writable
+  echo "DEBUG: Checking output directory permissions"
+  if [ ! -d "$OUT_DIR" ]; then
+    echo "ERROR: Output directory does not exist: $OUT_DIR"
+    exit 1
+  elif [ ! -w "$OUT_DIR" ]; then
+    echo "ERROR: Output directory is not writable: $OUT_DIR"
+    exit 1
   fi
 
-  # Remove the BAM index if it exists (may be partially generated)
-  if [ -f "$SORTED_BAM_INDEX" ]; then
-    echo "DEBUG: Removing incomplete BAM index: $SORTED_BAM_INDEX"
-    rm "$SORTED_BAM_INDEX"
-  fi
-
-  # Optional: remove the original BAM file if it's corrupted or incomplete
-  # echo "DEBUG: Removing original BAM file: $BAM_FILE"
-  # rm "$BAM_FILE"
-  # echo "DEBUG: Original BAM file removed."
-
-  # Sort the BAM file again (if needed)
+  # Sort the BAM file
   echo "DEBUG: Sorting BAM file..."
-  samtools sort -@ ${SLURM_CPUS_PER_TASK} -o "$SORTED_BAM_FILE" "$BAM_FILE"
-  echo "DEBUG: BAM file sorted to ${SORTED_BAM_FILE}"
+  echo "Executing: samtools sort -@ ${SLURM_CPUS_PER_TASK} -o \"$SORTED_BAM_FILE\" \"$BAM_FILE\""
+  if ! samtools sort -@ "${SLURM_CPUS_PER_TASK}" -o "$SORTED_BAM_FILE" "$BAM_FILE" 2>&1 | tee sorted_bam.log; then
+    echo "ERROR: Sorting BAM file failed for $BAM_FILE. Exiting."
+    exit 1
+  fi
+  echo "DEBUG: BAM file sorted successfully to $SORTED_BAM_FILE."
 
   # Index the sorted BAM file
   echo "DEBUG: Indexing sorted BAM file..."
-  samtools index "$SORTED_BAM_FILE"
-  echo "DEBUG: BAM file indexed."
-
+  echo "Executing: samtools index \"$SORTED_BAM_FILE\""
+  if ! samtools index "$SORTED_BAM_FILE" 2>&1 | tee index_bam.log; then
+    echo "ERROR: Indexing sorted BAM file failed for $SORTED_BAM_FILE. Exiting."
+    exit 1
+  fi
+  echo "DEBUG: BAM file indexed successfully: ${SORTED_BAM_FILE}.bai"
 fi
 
-# Optional: Clean up the unsorted BAM file if no longer needed
-# Uncomment the line below if you want to remove the original BAM file after sorting and indexing
+# Uncomment to clean up original BAM file if no longer needed
 # rm "$BAM_FILE"
-# echo "DEBUG: Removed unsorted BAM file."
+# echo "DEBUG: Removed original BAM file: $BAM_FILE"
