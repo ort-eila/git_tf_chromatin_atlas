@@ -46,22 +46,22 @@ for negative_path in $(ls -d ${negative_base_path}/*/*/*/fold_*); do
     echo "Listing all files under ${negative_path}:"
     ls -lh "${negative_path}"
 
-    # Extract the species, ID1, ID2, and fold_id from the path
-    species=$(basename $(dirname $(dirname $(dirname "${negative_path}"))))
+    # Extract the organism, ID1, ID2, and fold_id from the path
+    organism=$(basename $(dirname $(dirname $(dirname "${negative_path}"))))
     ID1=$(basename $(dirname $(dirname "${negative_path}")))
     ID2=$(basename $(dirname "${negative_path}"))
     fold_id=$(basename "${negative_path}")
 
     # Debug messages for the extracted values
-    echo "Extracted species: ${species}"
+    echo "Extracted organism: ${organism}"
     echo "Extracted ID1: ${ID1}"
     echo "Extracted ID2: ${ID2}"
     echo "Extracted fold_id: ${fold_id}"
 
     # Construct the paths
     filtered_peaks_path="${GROUP_SCRATCH}/${USER}/encode_pseudobulks/encode_pseudobulks_data/peaks_blacklist_filter/${ID1}/${ID2}/${ID1}_${ID2}_peaks_no_blacklist.bed.gz"
-    bam_path="${GROUP_SCRATCH}/${USER}/encode_pseudobulks/encode_pseudobulks_data/bams/${ID1}/${ID1}_sorted.bam"
-    negative_file="${negative_path}/${ID1}_${ID2}_${species}_nonpeaks_negatives.bed"
+    bam_path="${GROUP_SCRATCH}/${USER}/encode_pseudobulks/encode_pseudobulks_data/bams/${ID1}/*_sorted.bam"  # Matching any BAM file with '_sorted.bam'
+    negative_file="${negative_path}/${ID1}_${ID2}_${organism}_nonpeaks_negatives.bed"
 
     # Debug messages for constructed paths
     echo "Constructed filtered_peaks_path: ${filtered_peaks_path}"
@@ -74,8 +74,11 @@ for negative_path in $(ls -d ${negative_base_path}/*/*/*/fold_*); do
         continue
     fi
 
-    if [[ ! -f "${bam_path}" ]]; then
-        echo "Error: Missing BAM file ${bam_path}"
+    # Check if the BAM file exists by expanding the wildcard pattern
+    # We use a globbing mechanism to check if any matching BAM file exists. The BAM file ENCF IS is not idential to the peaks ENCF_ID (as used to be in the prev verion)
+    matching_bams=(${GROUP_SCRATCH}/${USER}/encode_pseudobulks/encode_pseudobulks_data/bams/${ID1}/*_sorted.bam)
+    if [ ${#matching_bams[@]} -eq 0 ]; then
+        echo "Error: No matching BAM files found for pattern ${bam_path}"
         continue
     fi
 
@@ -89,36 +92,36 @@ for negative_path in $(ls -d ${negative_base_path}/*/*/*/fold_*); do
         echo "********************************"
         ls -l "${negative_path}"
         echo "********************************"
-        # rm -rf "${negative_path}"
+        rm -rf "${negative_path}"
 
         continue
     fi
 
     # Write the extracted information to the main output file
     echo "Writing to main output file: ${output_file}"
-    echo "${species} ${ID1} ${ID2} ${fold_id} ${filtered_peaks_path} ${bam_path} ${negative_file}" >> "$output_file"
+    echo "${organism} ${ID1} ${ID2} ${fold_id} ${filtered_peaks_path} ${matching_bams[0]} ${negative_file}" >> "$output_file"
 
     # Check fold_id and write to the appropriate fold output file
     case "${fold_id}" in
         "fold_0")
             echo "Writing to fold_0 output file: ${fold0_output_file}"
-            echo "${species} ${ID1} ${ID2} ${fold_id} ${filtered_peaks_path} ${bam_path} ${negative_file}" >> "$fold0_output_file"
+            echo "${organism} ${ID1} ${ID2} ${fold_id} ${filtered_peaks_path} ${matching_bams[0]} ${negative_file}" >> "$fold0_output_file"
             ;;
         "fold_1")
             echo "Writing to fold_1 output file: ${fold1_output_file}"
-            echo "${species} ${ID1} ${ID2} ${fold_id} ${filtered_peaks_path} ${bam_path} ${negative_file}" >> "$fold1_output_file"
+            echo "${organism} ${ID1} ${ID2} ${fold_id} ${filtered_peaks_path} ${matching_bams[0]} ${negative_file}" >> "$fold1_output_file"
             ;;
         "fold_2")
             echo "Writing to fold_2 output file: ${fold2_output_file}"
-            echo "${species} ${ID1} ${ID2} ${fold_id} ${filtered_peaks_path} ${bam_path} ${negative_file}" >> "$fold2_output_file"
+            echo "${organism} ${ID1} ${ID2} ${fold_id} ${filtered_peaks_path} ${matching_bams[0]} ${negative_file}" >> "$fold2_output_file"
             ;;
         "fold_3")
             echo "Writing to fold_3 output file: ${fold3_output_file}"
-            echo "${species} ${ID1} ${ID2} ${fold_id} ${filtered_peaks_path} ${bam_path} ${negative_file}" >> "$fold3_output_file"
+            echo "${organism} ${ID1} ${ID2} ${fold_id} ${filtered_peaks_path} ${matching_bams[0]} ${negative_file}" >> "$fold3_output_file"
             ;;
         "fold_4")
             echo "Writing to fold_4 output file: ${fold4_output_file}"
-            echo "${species} ${ID1} ${ID2} ${fold_id} ${filtered_peaks_path} ${bam_path} ${negative_file}" >> "$fold4_output_file"
+            echo "${organism} ${ID1} ${ID2} ${fold_id} ${filtered_peaks_path} ${matching_bams[0]} ${negative_file}" >> "$fold4_output_file"
             ;;
         *)
             echo "Warning: Unrecognized fold_id ${fold_id}"

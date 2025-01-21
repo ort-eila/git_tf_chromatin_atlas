@@ -5,10 +5,8 @@
 #SBATCH --mem=2GB
 #SBATCH --time=00:20:00
 #SBATCH --partition=akundaje,owners
-#SBATCH --mail-type=all
-#SBATCH --mail-user=eila@stanford.edu
-#SBATCH --output=local_logs/slurm.step42.filterBackground.out.filter.log
-#SBATCH --error=local_logs/slurm.step42.filterBackground.err.filter.log
+#SBATCH --output=local_logs/step42.filterBackground.out.filter.log
+#SBATCH --error=local_logs/step42.filterBackground.err.filter.log
 
 # Set script to exit on errors, undefined variables, or command failures in pipelines
 set -euo pipefail
@@ -35,21 +33,21 @@ LINE=$(awk "NR==${SLURM_ARRAY_TASK_ID}" "$TXT_FILE")
 
 # Extract values using awk
 file_path=$(echo "$LINE" | awk '{print $1}')
-species=$(echo "$LINE" | awk '{print $2}')
+organism=$(echo "$LINE" | awk '{print $2}')
 
-# Check if file path and species were extracted correctly
+# Check if file path and organism were extracted correctly
 if [ -z "$file_path" ]; then
     echo "Error: File path is empty!"
     exit 1
 fi
 
-if [ -z "$species" ]; then
-    echo "Error: Species is empty!"
+if [ -z "$organism" ]; then
+    echo "Error: organism is empty!"
     exit 1
 fi
 
 echo "DEBUG: Extracted file path: '$file_path'"
-echo "DEBUG: Extracted species: '$species'"
+echo "DEBUG: Extracted organism: '$organism'"
 
 # Extract ID1 and ID2 from the file path
 ID1=$(echo "$file_path" | awk -F'/' '{print $(NF-2)}')  # Extracts the second last directory name
@@ -70,19 +68,19 @@ fi
 
 BLACKLIST_FILE=""
 CHROM_SIZES_FILE=""
-# Select the appropriate blacklist file based on species
-if [[ "$species" == "human" ]]; then
+# Select the appropriate blacklist file based on organism
+if [[ "$organism" == "Homo_sapiens" ]]; then
     BLACKLIST_FILE="./steps_inputs/reference_human/ENCFF356LFX.bed.gz"
     echo "DEBUG: human BLACKLIST_FILE is: '$BLACKLIST_FILE'"
     CHROM_SIZES_FILE="./steps_inputs/reference_human/GRCh38_EBV.chrom.sizes.tsv"
     echo "DEBUG: human CHROM_SIZES_FILE is: '$CHROM_SIZES_FILE'"
-elif [[ "$species" == "mouse" ]]; then
+elif [[ "$organism" == "Mus_musculus" ]]; then
     BLACKLIST_FILE="./steps_inputs/reference_mouse/ENCFF547MET.bed.gz"
     echo "DEBUG: mouse BLACKLIST_FILE is: '$BLACKLIST_FILE'"
     CHROM_SIZES_FILE="./steps_inputs/reference_mouse/mm10_no_alt.chrom.sizes.tsv"
     echo "DEBUG: mouse CHROM_SIZES_FILE is: '$CHROM_SIZES_FILE'"
 else
-    echo "Error: Unsupported species '$species'."
+    echo "Error: Unsupported organism '$organism'."
     exit 1
 fi
 echo "DEBUG: Using blacklist file: '$BLACKLIST_FILE'"
@@ -100,10 +98,18 @@ echo "Running bedtools slop for ${ID1} ${ID2}..."
 bedtools slop -i "${BLACKLIST_FILE}" -g "${CHROM_SIZES_FILE}" -b 1057 > "${TEMP_FILE}"
 echo "DEBUG: bedtools slop completed for ${ID1} ${ID2}. Output saved to ${TEMP_FILE}"
 
+# Display the first few lines of the TEMP_FILE to debug
+echo "DEBUG: Preview of TEMP_FILE content:"
+head -n 10 "${TEMP_FILE}"
+
 # Run bedtools intersect
 echo "Running bedtools intersect for ${ID1} ${ID2}..."
 bedtools intersect -v -a "${file_path}" -b "${TEMP_FILE}" > "${OUTPUT_FILE}"
 echo "DEBUG: bedtools intersect completed for ${ID1} ${ID2}. Output saved to ${OUTPUT_FILE}"
+
+# Display the first few lines of the OUTPUT_FILE to debug
+echo "DEBUG: Preview of OUTPUT_FILE content:"
+head -n 10 "${OUTPUT_FILE}"
 
 # Clean up temporary file
 rm -f "${TEMP_FILE}"
@@ -119,6 +125,10 @@ echo "Creating QC report for ${ID1} ${ID2}..."
 echo "Generating QC difference file for ${ID1} ${ID2}..."
 bedtools intersect -a "${file_path}" -b "${OUTPUT_FILE}" -wao > "${QC_OUTPUT_FILE}"
 echo "DEBUG: QC file generated for ${ID1} ${ID2}. QC saved to ${QC_OUTPUT_FILE}"
+
+# Display the first few lines of QC file to debug
+echo "DEBUG: Preview of QC file content:"
+head -n 10 "${QC_OUTPUT_FILE}"
 
 # Check if the QC file size is zero
 qc_file_size=$(stat -c%s "${QC_OUTPUT_FILE}")

@@ -5,8 +5,8 @@
 #SBATCH --mem=16GB
 #SBATCH --time=04:00:00
 #SBATCH --partition=akundaje,owners
-#SBATCH --output=local_logs/step2.ENCSR865OGT.combined.out
-#SBATCH --error=local_logs/step2.ENCSR865OGT.combined.err
+#SBATCH --output=local_logs/step2.samtools.combined.out
+#SBATCH --error=local_logs/step2.samtools.combined.err
 
 # Exit on errors, undefined variables, or pipeline failures
 set -euo pipefail
@@ -43,17 +43,13 @@ if ! samtools quickcheck "$BAM_FILE"; then
   exit 1
 fi
 
-samtools view -H "$BAM_FILE" | head -n 5
-echo "DEBUG: BAM file header preview completed."
 
-# Extract ENCSR_ID from the BAM file path
-ENCSR_ID=$(basename "$BAM_FILE" | cut -d'_' -f1)
-echo "DEBUG: ENCSR_ID is $ENCSR_ID"
-
+ENCFF_ID=$(basename "$BAM_FILE" | cut -d'_' -f1)
+echo "DEBUG: ENCFF_ID is $ENCFF_ID"
 
 # Define output paths
 OUT_DIR=$(dirname "$BAM_FILE")
-SORTED_BAM_FILE="${OUT_DIR}/${ENCSR_ID}_sorted.bam"
+SORTED_BAM_FILE="${OUT_DIR}/${ENCFF_ID}_sorted.bam"
 SORTED_BAM_INDEX="${SORTED_BAM_FILE}.bai"
 echo "DEBUG: Sorted BAM file path: $SORTED_BAM_FILE"
 echo "DEBUG: Sorted BAM index file path: $SORTED_BAM_INDEX"

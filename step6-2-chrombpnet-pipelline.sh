@@ -37,7 +37,7 @@ CSV_FILE="$1"
 LINE=$(awk "NR==${SLURM_ARRAY_TASK_ID}" "$CSV_FILE")
 
 # Extract values using awk
-SPECIES=$(echo "$LINE" | awk '{print $1}')
+ORGANISM=$(echo "$LINE" | awk '{print $1}')
 ID1=$(echo "$LINE" | awk '{print $2}')
 ID2=$(echo "$LINE" | awk '{print $3}')
 FOLD_ID=$(echo "$LINE" | awk '{print $4}')
@@ -46,7 +46,7 @@ BAM_PATH=$(echo "$LINE" | awk '{print $6}')
 NEGATIVE_FILE=$(echo "$LINE" | awk '{print $7}')
 
 # Define the output directory
-OUT_DIR="${GROUP_SCRATCH}/${USER}/encode_pseudobulks/encode_pseudobulks_model_training/${SPECIES}/${ID1}/${ID2}/${FOLD_ID}/${JOB_NAME}"
+OUT_DIR="${GROUP_SCRATCH}/${USER}/encode_pseudobulks/encode_pseudobulks_model_training/${ORGANISM}/${ID1}/${ID2}/${FOLD_ID}/${JOB_NAME}"
 
 # Check if modisco_results_profile_scores.h5 exists in the specified path
 if [ ! -f "${OUT_DIR}/auxiliary/interpret_subsample/modisco_results_profile_scores.h5" ]; then
@@ -55,27 +55,27 @@ if [ ! -f "${OUT_DIR}/auxiliary/interpret_subsample/modisco_results_profile_scor
     echo "File modisco_results_profile_scores.h5 does not exist. Directory ${OUT_DIR} has been deleted."
 fi
 
-
 FASTA_PATH=""
 CHROM_SIZES_PATH=""
 BLACK_LIST_BED_PATH=""
 FOLD_PATH=""
 BIAS_MODEL_PATH=""
 # Check if all reference parameters exist
-if [ "$SPECIES" == "human" ]; then
+ORGANISM_LOWER=$(echo "$ORGANISM" | tr '[:upper:]' '[:lower:]')  # Convert to lowercase for case-insensitive comparison
+if [[ "$ORGANISM_LOWER" == "homo_sapiens" ]]; then
     FASTA_PATH="./steps_inputs/reference_human/GRCh38_no_alt_analysis_set_GCA_000001405.15.fasta"
     CHROM_SIZES_PATH="./steps_inputs/reference_human/GRCh38_EBV.chrom.sizes.tsv"
     BLACK_LIST_BED_PATH="./steps_inputs/reference_human/ENCFF356LFX.bed.gz"
     FOLD_PATH="./steps_inputs/reference_human/human_folds_splits/${FOLD_ID}.json"
     BIAS_MODEL_PATH="./steps_inputs/reference_human/human-fold_0-level1-ENCSR051ECW-cardiomyocyte.h5"
-elif [ "$SPECIES" == "mouse" ]; then
+elif [[ "$ORGANISM_LOWER" == "mus_musculus" ]]; then
     FASTA_PATH="./steps_inputs/reference_mouse/mm10_no_alt_analysis_set_ENCODE.fasta"
     CHROM_SIZES_PATH="./steps_inputs/reference_mouse/mm10_no_alt.chrom.sizes.tsv"
     BLACK_LIST_BED_PATH="./steps_inputs/reference_mouse/ENCFF547MET.bed.gz"
     FOLD_PATH="./steps_inputs/reference_mouse/mouse_folds_splits/${FOLD_ID}.json"
     BIAS_MODEL_PATH="./steps_inputs/reference_mouse/mouse-fold_0-level1-ENCSR858YSB-adrenal_cortical_cell.h5"
 else
-    echo "Error: Unsupported species '$SPECIES'."
+    echo "Error: Unsupported organism '$ORGANISM'. Only 'Homo_sapiens' or 'Mus_musculus' are supported."
     exit 1
 fi
 

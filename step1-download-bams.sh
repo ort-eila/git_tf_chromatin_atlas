@@ -3,7 +3,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=4GB
-#SBATCH --time=00:35:00
+#SBATCH --time=03:30:00
 #SBATCH --partition=akundaje,owners
 #SBATCH --output=local_logs/step1.download.combined.out
 #SBATCH --error=local_logs/step1.download.combined.err
