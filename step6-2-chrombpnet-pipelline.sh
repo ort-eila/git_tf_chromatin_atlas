@@ -4,10 +4,12 @@
 #SBATCH -G 1
 #SBATCH --mem=128GB
 #SBATCH --partition=akundaje,owners
-#SBATCH --job-name=step62.ENCSR730JYE
-#SBATCH --output=local_logs/slurm.step62.ENCSR730JYE.combined.out
-#SBATCH --error=local_logs/slurm.step62.ENCSR730JYE.combined.err
+#SBATCH --job-name=step62.chrombpnet
+#SBATCH --output=local_logs/step62.chrombpnet.combined.out
+#SBATCH --error=local_logs/step62.chrombpnet.combined.err
 
+
+# PAY ATTENTION: the OUT_DIR is built from the JOB_NAME
 # Exit on errors, undefined variables, or command failures in pipelines
 set -euo pipefail 
 set -x  # Enable verbose command logging

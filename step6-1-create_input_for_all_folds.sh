@@ -60,12 +60,12 @@ for negative_path in $(ls -d ${negative_base_path}/*/*/*/fold_*); do
 
     # Construct the paths
     filtered_peaks_path="${GROUP_SCRATCH}/${USER}/encode_pseudobulks/encode_pseudobulks_data/peaks_blacklist_filter/${ID1}/${ID2}/${ID1}_${ID2}_peaks_no_blacklist.bed.gz"
-    bam_path="${GROUP_SCRATCH}/${USER}/encode_pseudobulks/encode_pseudobulks_data/bams/${ID1}/*_sorted.bam"  # Matching any BAM file with '_sorted.bam'
+    sorted_bam_path="${GROUP_SCRATCH}/${USER}/encode_pseudobulks/encode_pseudobulks_data/bams/${ID1}/*_sorted.bam"  # Matching any BAM file with '_sorted.bam'
     negative_file="${negative_path}/${ID1}_${ID2}_${organism}_nonpeaks_negatives.bed"
 
     # Debug messages for constructed paths
     echo "Constructed filtered_peaks_path: ${filtered_peaks_path}"
-    echo "Constructed BAM path: ${bam_path}"
+    echo "Constructed BAM path: ${sorted_bam_path}"
     echo "Constructed negative file path: ${negative_file}"
 
     # Check if the paths exist and print errors if they don't
@@ -78,21 +78,23 @@ for negative_path in $(ls -d ${negative_base_path}/*/*/*/fold_*); do
     # We use a globbing mechanism to check if any matching BAM file exists. The BAM file ENCF IS is not idential to the peaks ENCF_ID (as used to be in the prev verion)
     matching_bams=(${GROUP_SCRATCH}/${USER}/encode_pseudobulks/encode_pseudobulks_data/bams/${ID1}/*_sorted.bam)
     if [ ${#matching_bams[@]} -eq 0 ]; then
-        echo "Error: No matching BAM files found for pattern ${bam_path}"
+        echo "Error: No matching BAM files found for pattern ${sorted_bam_path}"
         continue
     fi
 
     # Check if the negative file exists, and remove the folder if it doesn't
     if [[ ! -f "${negative_file}" ]]; then
+        echo "********************************"
         echo "Error: Missing negative file ${negative_file}"
+        echo "********************************"
 
         # Remove the directory containing the missing negative file.
-        echo "Removing directory due to missing negative file: ${negative_path}"
-        echo "Debug: The following files will be removed from ${negative_path}:"
-        echo "********************************"
-        ls -l "${negative_path}"
-        echo "********************************"
-        rm -rf "${negative_path}"
+        # echo "Removing directory due to missing negative file: ${negative_path}"
+        # echo "Debug: The following files will be removed from ${negative_path}:"
+        # echo "********************************"
+        # ls -l "${negative_path}"
+        # echo "********************************"
+        # rm -rf "${negative_path}"
 
         continue
     fi
