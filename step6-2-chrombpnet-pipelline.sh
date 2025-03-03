@@ -39,6 +39,7 @@ CSV_FILE="$1"
 LINE=$(awk "NR==${SLURM_ARRAY_TASK_ID}" "$CSV_FILE")
 
 # Extract values using awk
+# homo_sapiens ENCSR429XJF ENCFF599SDP fold_1 /scratch/groups/akundaje/eila/encode_pseudobulks/encode_pseudobulks_data/peaks_blacklist_filter/ENCSR429XJF/ENCFF599SDP/ENCSR429XJF_ENCFF599SDP_peaks_no_blacklist.bed.gz /scratch/groups/akundaje/eila/encode_pseudobulks/encode_pseudobulks_data/bams/ENCSR429XJF/ENCFF456BHJ_sorted.bam /scratch/groups/akundaje/eila/encode_pseudobulks/encode_pseudobulks_negative/homo_sapiens/ENCSR429XJF/ENCFF599SDP/fold_1/ENCSR429XJF_ENCFF599SDP_homo_sapiens_nonpeaks_negatives.bed 
 ORGANISM=$(echo "$LINE" | awk '{print $1}')
 ID1=$(echo "$LINE" | awk '{print $2}')
 ID2=$(echo "$LINE" | awk '{print $3}')
@@ -86,7 +87,7 @@ required_files=("$FASTA_PATH" "$CHROM_SIZES_PATH" "$BLACK_LIST_BED_PATH" "$NEGAT
 
 for file in "${required_files[@]}"; do
     if [ ! -f "$file" ]; then
-        echo "Error: Required file $file does not exist."
+        echo "Error: Required file '$file' does not exist."
         exit 1
     fi
 done

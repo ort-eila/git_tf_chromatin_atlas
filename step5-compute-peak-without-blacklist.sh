@@ -2,7 +2,7 @@
 
 #SBATCH --time=48:00:00   # Set a 2-day time limit
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=8  # Request 8 CPUs per task
+#SBATCH --cpus-per-task=16  # Request 8 CPUs per task
 #SBATCH --mem=64GB
 #SBATCH --partition=akundaje,owners
 #SBATCH --job-name=step5NegativesNoPeaksBackground
@@ -31,12 +31,15 @@ echo "Debug: Activated Conda environment 'chrombpnet'."
 LINE=$(sed -n "${SLURM_ARRAY_TASK_ID}p" "$IDS_FILE")
 echo "Debug: Extracted line from IDS_FILE: ${LINE}"
 
-id_1=$(echo "${LINE}" | awk '{print $1}')  # ENCSR449JMK
-organism=$(echo "${LINE}" | awk '{print $2}')  # homo sapiens or mouse
-id_2=$(echo "${LINE}" | awk -F '/' '{print $(NF-1)}')  # Extract the second-to-last field from the path
-echo "Debug: Extracted id_1: ${id_1}, id_2: ${id_2}, organism: ${organism}"
+id_1=$(echo "${LINE}" | awk '{print $1}')  # Extract first field
+organism=$(echo "${LINE}" | awk '{print $2}')  # Extract second field
+id_2=$(echo "${LINE}" | awk -F '/' '{print $(NF-1)}')  # Extract second-to-last field
+PEAKS_NO_BLACKLIST=$(echo "${LINE}" | awk '{print $3}')  # Extract full path
 
-# Convert organism to lowercase for consistent checking
+echo "Debug: Extracted id_1: ${id_1}, id_2: ${id_2}, organism: ${organism}"
+echo "Debug: Extracted PEAKS_NO_BLACKLIST: ${PEAKS_NO_BLACKLIST}"
+
+# Convert organism to lowercase
 organism=$(echo "$organism" | tr '[:upper:]' '[:lower:]')
 echo "Debug: Converted organism to lowercase: ${organism}"
 
@@ -67,7 +70,6 @@ fi
 
 # Define the output directory based on ID and organism
 OUT_DIR="${GROUP_SCRATCH}/${USER}/encode_pseudobulks/encode_pseudobulks_negative/${organism}/${id_1}/${id_2}"
-PEAKS_NO_BLACKLIST=$(echo "$LINE" | awk '{print $3}')
 echo "Debug: OUT_DIR is set to: ${OUT_DIR}"
 echo "Debug: PEAKS_NO_BLACKLIST is set to: ${PEAKS_NO_BLACKLIST}"
 
