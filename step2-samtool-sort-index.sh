@@ -1,5 +1,6 @@
 #!/bin/bash
 
+#SBATCH --job-name=step2.samtools
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=16GB

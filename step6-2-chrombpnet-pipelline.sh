@@ -49,6 +49,7 @@ BAM_PATH=$(echo "$LINE" | awk '{print $6}')
 NEGATIVE_FILE=$(echo "$LINE" | awk '{print $7}')
 
 # Define the output directory
+# OUT_DIR="${GROUP_SCRATCH}/${USER}/encode_pseudobulks/encode_pseudobulks_model_training/${ORGANISM}/${ID1}/${ID2}/${FOLD_ID}/${JOB_NAME}"
 OUT_DIR="${GROUP_SCRATCH}/${USER}/encode_pseudobulks/encode_pseudobulks_model_training/${ORGANISM}/${ID1}/${ID2}/${FOLD_ID}/${JOB_NAME}"
 
 # Check if modisco_results_profile_scores.h5 exists in the specified path

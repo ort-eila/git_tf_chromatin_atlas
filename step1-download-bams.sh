@@ -1,5 +1,6 @@
 #!/bin/bash
 
+#SBATCH --job-name=step1.bams.download
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=4GB
@@ -43,6 +44,8 @@ fi
 ENCSR_ID=$(echo "${LINE}" | awk '{print $1}')
 download_url=$(echo "${LINE}" | awk '{print $2}')
 EXPECTED_MD5=$(echo "${LINE}" | awk '{print $3}')
+EXPECTED_MD5=$(echo "$EXPECTED_MD5" | tr -d '[:space:]')
+
 
 # Extract ENCFF_ID from the download_url (last part of the URL, e.g., ENCFF060FCI)
 # Extract ENCFF_ID from the download_url (last part of the URL, e.g., ENCFF279AJD)
@@ -60,11 +63,15 @@ bam_dir="${out_dir}/bams/${ENCSR_ID}"
 mkdir -p "${bam_dir}"
 echo "BAM directory created or verified: ${bam_dir}"
 
+
 # Check if credentials are set
 if [ -z "${ACCESS_KEY:-}" ] || [ -z "${SECRET_KEY:-}" ]; then
   echo "Error: ACCESS_KEY or SECRET_KEY is not set. Please set the credentials in your environment."
   exit 1
+else
+  echo "ACCESS_KEY and SECRET_KEY are set."
 fi
+
 
 # Check if the BAM file already exists
 bam_file="${bam_dir}/${ENCFF_ID}_unsorted.bam"
@@ -97,7 +104,9 @@ fi
 # Verify the MD5 checksum of the downloaded or existing BAM file
 echo "Verifying MD5 checksum..."
 # Calculate the MD5 checksum of the downloaded or existing BAM file
-ACTUAL_MD5=$(md5sum "$bam_file" | awk '{print $1}')
+# ACTUAL_MD5=$(md5sum "$bam_file" | awk '{print $1}')
+ACTUAL_MD5=$(md5sum "$bam_file" | awk '{print $1}' | tr -d '[:space:]')
+
 
 # Compare the actual MD5 with the expected one
 if [ "$ACTUAL_MD5" == "$EXPECTED_MD5" ]; then
